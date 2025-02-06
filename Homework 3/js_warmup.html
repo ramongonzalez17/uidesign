@@ -1,0 +1,30 @@
+<html>
+
+<head> 
+    <script src=https://code.jquery.com/jquery-3.3.1.min.js crossorigin="anonymous"></script>
+    <script>
+        function clicked(c){
+            console.log("i was clicked" + Math.random() )
+        }
+
+
+        
+
+
+
+
+
+    </script>
+</head>
+<body>
+    <button id = "counter" class ="btn btn-primary">Click me </button>
+</body>
+
+
+$(document).ready(function(){
+    $("#counter").click(function(){
+        alert("hello")
+    })
+})
+
+</html>
