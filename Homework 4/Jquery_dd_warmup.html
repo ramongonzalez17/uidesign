@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>jQuery UI Drag and Drop</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <style>
+        #draggable {
+            width: 100px;
+            height: 100px;
+            padding: 0.5em;
+            float: left;
+            margin: 10px;
+            background-color: lightblue;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: move; 
+        }
+        #droppable {
+            width: 150px;
+            height: 150px;
+            padding: 0.5em;
+            float: left;
+            margin: 10px;
+            background-color: lightgray;
+            text-align: center;
+            line-height: 150px;
+        }
+        .ui-state-highlight {
+            background-color: lightgreen !important;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+    <script src="Jquery_dd_warmup.js"></script> 
+</head>
+<body>
+
+    <div id="draggable" class="ui-widget-content">
+        <p>Drag me to my target</p>
+    </div>
+
+    <div id="droppable" class="ui-widget-header">
+        <p>Drop here</p>
+    </div>
+
+</body>
+</html>

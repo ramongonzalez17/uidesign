@@ -12,22 +12,27 @@
             margin: auto;
             padding: 20px;
         }
+
         #tweetBox {
             width: 100%;
             height: 50px;
         }
+
         #charCount {
             color: lightgray;
         }
+
         .negative {
-            color: red;
+            color: red !important; 
             font-weight: bold;
         }
+
         #postTweet {
             display: block;
             margin-top: 10px;
             padding: 5px 10px;
         }
+
         .tweet {
             border-bottom: 1px solid #ccc;
             padding: 10px;
@@ -36,46 +41,54 @@
 </head>
 <body>
     <h2>Tweet Something</h2>
-    <textarea id="tweetBox" maxlength="30"></textarea>
+    <textarea id="tweetBox"></textarea>
     <div>
         <span id="charCount">30</span> characters remaining
     </div>
     <button id="postTweet" disabled>Post Tweet</button>
     <h3>Your Tweets</h3>
     <div id="tweetList"></div>
-    
+
     <script>
         const maxChars = 30;
-        const username = "@user123";
+
+        const username = "@bestTAever";
 
         $(document).ready(function() {
+        // Event listener for typing in the tweet box
             $('#tweetBox').on('input', function() {
-                let text = $(this).val();
-                let charsLeft = maxChars - text.length;
+                let text = $(this).val(); 
+                let charsLeft = maxChars - text.length; 
+
                 $('#charCount').text(charsLeft);
+
                 if (charsLeft < 0) {
-                    $('#charCount').addClass('negative');
-                    $('#postTweet').prop('disabled', true);
+                    $('#charCount').addClass('negative');  
+                    $('#postTweet').prop('disabled', true); 
                 } else {
-                    $('#charCount').removeClass('negative');
-                    $('#postTweet').prop('disabled', text.trim().length === 0);
+                    $('#charCount').removeClass('negative'); 
+                    $('#postTweet').prop('disabled', text.trim().length === 0); 
                 }
             });
-
+        // Event listener for pressing Enter key in the tweet box
             $('#tweetBox').on('keypress', function(e) {
-                if (e.which === 13) { 
-                    e.preventDefault();
-                    $('#postTweet').click();
+                if (e.which === 13 && !$('#postTweet').prop('disabled')) { 
+                    e.preventDefault(); 
+                    $('#postTweet').click(); 
                 }
             });
-
+        // Event listener for clicking the "Post Tweet" button
             $('#postTweet').on('click', function() {
-                let text = $('#tweetBox').val().trim();
-                if (text.length > 0) {
+                let text = $('#tweetBox').val().trim(); 
+
+                if (text.length > 0) { 
                     $('#tweetList').prepend(`<div class='tweet'><strong>${username}</strong>: ${text}</div>`);
+
                     $('#tweetBox').val('');
                     $('#charCount').text(maxChars).removeClass('negative');
+
                     $(this).prop('disabled', true);
+
                     $('#tweetBox').focus();
                 }
             });
