@@ -1,6 +1,34 @@
 const salesperson = "John Doe";
-let salesData = [];
-let clients = ["Client A", "Client B", "Client C"];
+let salesData = [
+	{
+		"salesperson": "James D. Halpert",
+		"client": "Shake Shack",
+		"reams": 100
+	},
+	{
+		"salesperson": "Stanley Hudson",
+		"client": "Toast",
+		"reams": 400
+	},
+	{
+		"salesperson": "Michael G. Scott",
+		"client": "Computer Science Department",
+		"reams": 1000
+	},
+]
+let clients = [
+    "Shake Shack",
+    "Toast",
+    "Computer Science Department",
+    "Teacher's College",
+    "Starbucks",
+    "Subsconsious",
+    "Flat Top",
+    "Joe's Coffee",
+    "Max Caffe",
+    "Nussbaum & Wu",
+    "Taco Bell",
+];
 
 $(document).ready(function() {
     $("#client").autocomplete({
@@ -13,6 +41,7 @@ $(document).ready(function() {
             addSale();
         }
     });
+    loadScreen();
 });
 
 function addSale() {
@@ -69,6 +98,7 @@ function drag(event, index) {
 $("#trash").on("dragover", function(event) {
     event.preventDefault();
     $(this).addClass("bg-warning");
+    $(this).css("cursor", "grabbing");
 });
 
 $("#trash").on("dragleave", function() {
@@ -81,3 +111,7 @@ $("#trash").on("drop", function(event) {
     deleteSale(index);
     $(this).removeClass("bg-warning");
 });
+
+function loadScreen() { 
+    renderSales();
+}
