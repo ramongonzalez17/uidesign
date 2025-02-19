@@ -1,0 +1,69 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+}
+
+h1 {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+#trash {
+    background-color: lightgray;
+    border: 2px solid black;
+    padding: 15px;
+    text-align: center;
+    width: 100%;
+    margin: 10px 0;
+}
+
+#trash.bg-warning {
+    background-color: yellow !important;
+}
+
+.input-group {
+    margin-bottom: 10px;
+}
+
+#submit-sale {
+    background-color: blue;
+    color: white;
+    font-weight: bold;
+    padding: 6px 12px;
+}
+
+.sale-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin: 5px 0;
+}
+
+.sale-row:hover {
+    background-color: lightyellow;
+}
+
+.delete-btn {
+    background-color: gold;
+    border: none;
+    color: black;
+    font-weight: bold;
+    width: 30px;
+    height: 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.delete-btn:hover {
+    background-color: orange;
+}

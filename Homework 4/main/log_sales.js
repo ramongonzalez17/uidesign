@@ -1,4 +1,4 @@
-const salesperson = "John Doe";
+const salesperson = "Lindsey Rosales - Best TA and Datadog SWE";
 let salesData = [
 	{
 		"salesperson": "James D. Halpert",
@@ -47,43 +47,71 @@ $(document).ready(function() {
 function addSale() {
     const client = $("#client").val().trim();
     const reams = $("#reams").val().trim();
-    $("#client-warning").text("");
-    $("#reams-warning").text("");
-    
+
+    if ($("#reams-warning").length === 0) {
+        $("#reams").after("<span id='reams-warning' class='text-danger'></span>");
+    }
+    if ($("#client-warning").length === 0) {
+        $("#client").after("<span id='client-warning' class='text-danger'></span>");
+    }
+
+    $("#client-warning").text("").hide();
+    $("#reams-warning").text("").hide();
+
     if (!client) {
-        $("#client-warning").text("Client name is required.");
+        $("#client-warning").text("Client name is required.").show();
         $("#client").focus();
         return;
     }
-    
-    if (!reams || isNaN(reams)) {
-        $("#reams-warning").text("Valid number of reams is required.");
+
+    if (!reams) {
+        $("#reams-warning").text("Number of reams is required.").show();
         $("#reams").focus();
         return;
     }
-    
+
+    if (!/^[0-9]+$/.test(reams)) {
+        $("#reams-warning").text("Valid number of reams is required.").show();
+        $("#reams").focus();
+        return;
+    }
+
     if (!clients.includes(client)) {
         clients.push(client);
     }
-    
+
     salesData.unshift({ client, reams, salesperson });
+
     renderSales();
+
     $("#client, #reams").val("");
     $("#client").focus();
+    $("#client-warning, #reams-warning").hide();
 }
 
 function renderSales() {
     const salesContainer = $("#sales-records");
     salesContainer.empty();
     salesData.forEach((sale, index) => {
-        const saleRow = $(
-            `<div class='d-flex justify-content-between align-items-center border p-2 mt-2' draggable='true' ondragstart='drag(event, ${index})'>
-                <span>${sale.client} - ${sale.reams} reams (by ${sale.salesperson})</span>
-                <button class='btn btn-danger btn-sm' onclick='deleteSale(${index})'>Delete</button>
-            </div>`
-        );
+        const saleRow = $(`
+            <div class='d-flex flex-column border p-3 mt-2 sale-row' draggable='true' ondragstart='drag(event, ${index})' style='cursor: move; width: 100%;'>
+                <span><strong>${sale.salesperson}</strong></span>
+                <span>Client: ${sale.client}</span>
+                <span>Reams: ${sale.reams}</span>
+                <button class='btn btn-danger btn-sm mt-2 delete-btn' onclick='deleteSale(${index})'>X</button>
+            </div>
+        `);
         salesContainer.append(saleRow);
     });
+
+    $(".sale-row").hover(
+        function() {
+            $(this).css("background-color", "lightyellow");
+        }, 
+        function() {
+            $(this).css("background-color", "");
+        }
+    );
 }
 
 function deleteSale(index) {
@@ -103,6 +131,7 @@ $("#trash").on("dragover", function(event) {
 
 $("#trash").on("dragleave", function() {
     $(this).removeClass("bg-warning");
+    $(this).css("cursor", "default");
 });
 
 $("#trash").on("drop", function(event) {
@@ -110,6 +139,7 @@ $("#trash").on("drop", function(event) {
     const index = event.originalEvent.dataTransfer.getData("text");
     deleteSale(index);
     $(this).removeClass("bg-warning");
+    $(this).css("cursor", "default");
 });
 
 function loadScreen() { 
