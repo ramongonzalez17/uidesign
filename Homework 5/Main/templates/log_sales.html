@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="container mt-4">
+        <div class="p-3 text-center rounded shadow" style="background-color: lightblue;">
+            <h1>Log Your Paper Sales</h1>
+            <p>Enter client details and the number of reams sold.</p>
+        </div>
+
+        <h4 class="mt-3">New Sale Entry:</h4>
+        <div class="input-group mb-3">
+            <input type="text" id="client" class="form-control" placeholder="Client">
+            <input type="text" id="reams" class="form-control" placeholder="# Reams">
+            <button id="submit-sale" class="btn btn-primary">Submit</button>
+        </div>
+
+        <h4 class="mt-3">Sales Log:</h4>
+        <div id="sales-records" class="mt-4"></div>
+    </div>
+
+    <!-- Pass server data to JavaScript -->
+    <script>
+        const salesData = {{ sales | tojson }};
+        const clients = {{ clients | tojson }};
+    </script>
+
+    <script src="{{ url_for('static', filename='log_sales.js') }}"></script>
+{% endblock %}
