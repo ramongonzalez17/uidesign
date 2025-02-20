@@ -20,9 +20,9 @@
 
     <!-- Pass server data to JavaScript -->
     <script>
-        const salesData = {{ sales | tojson }};
-        const clients = {{ clients | tojson }};
+        window.salesData = JSON.parse('{{ sales | tojson | safe }}');
+        window.clients = JSON.parse('{{ clients | tojson | safe }}');
     </script>
-
+    
     <script src="{{ url_for('static', filename='log_sales.js') }}"></script>
 {% endblock %}
