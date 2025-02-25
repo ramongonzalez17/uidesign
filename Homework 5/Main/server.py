@@ -1,8 +1,7 @@
 from flask import Flask, render_template, request, jsonify
-
+import os
 app = Flask(__name__)
 
-# Global variables to store sales data
 current_id = 4
 sales = [
     {"id": 1, "salesperson": "James D. Halpert", "client": "Shake Shack", "reams": 1000},
@@ -16,7 +15,7 @@ clients = [
     "Max Caffe", "Nussbaum & Wu", "Taco Bell"
 ]
 
-# Routes
+# 
 
 @app.route('/')
 def welcome():
@@ -25,7 +24,11 @@ def welcome():
 
 @app.route('/infinity')
 def log_sales():
-    """Render the log sales page with sales and clients data."""
+    template_path = os.path.join(app.root_path, "templates", "log_sales.html")
+    if not os.path.exists(template_path):
+        return "⚠️ ERROR: log_sales.html NOT FOUND!", 500  # Return error if missing
+    
+    print("✅ log_sales.html is being rendered")
     return render_template('log_sales.html', sales=sales, clients=clients)
 
 # API Routes for sales management
@@ -42,10 +45,9 @@ def save_sale():
         "client": json_data["client"],
         "reams": json_data["reams"]
     }
-    current_id += 1  # Increment the ID for the next sale
-    sales.insert(0, new_sale)  # Add new sale at the top
+    current_id += 1 
+    sales.insert(0, new_sale)  
 
-    # Add new client if not already in list
     if new_sale["client"] not in clients:
         clients.append(new_sale["client"])
 
@@ -53,16 +55,13 @@ def save_sale():
 
 @app.route('/delete_sale', methods=['POST'])
 def delete_sale():
-    """Delete a sale by ID and return updated sales list."""
     global sales
     json_data = request.get_json()
     sale_id = json_data["id"]
 
-    # Remove sale with the given ID
     sales = [sale for sale in sales if sale["id"] != sale_id]
 
     return jsonify(sales=sales)
 
-# Run Flask App
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
