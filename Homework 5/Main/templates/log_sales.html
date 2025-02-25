@@ -9,14 +9,46 @@
             </div>
         </div>
 
-        <h4 class="mt-3">Log your paper sales:</h4>
-        <div class="input-group">
-            <input type="text" id="client" class="form-control" placeholder="Client">
-            <input type="text" id="reams" class="form-control" placeholder="# Reams">
-            <button id="submit-sale" class="btn btn-primary">Submit</button>
-        </div>
+        <h4 class="mt-3">Log Your Paper Sales:</h4>
 
-        <div id="sales-records" class="mt-4"></div>
+        <!-- Table Layout for Inputs & Sales Log -->
+        <table class="table table-bordered mt-3 text-center align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Client</th>
+                    <th>Reams</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <input type="text" id="client" class="form-control" placeholder="Client">
+                        <span id="client-warning" class="text-danger small d-block"></span> <!-- Client error message -->
+                    </td>
+                    <td>
+                        <input type="text" id="reams" class="form-control" placeholder="# Reams">
+                        <span id="reams-warning" class="text-danger small d-block"></span> <!-- Reams error message -->
+                    </td>
+                    <td>
+                        <button id="submit-sale" class="btn btn-primary">Submit</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4 class="mt-3">Sales Log:</h4>
+        <table class="table table-bordered mt-3 text-center align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Salesperson</th>
+                    <th>Client</th>
+                    <th>Reams</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="sales-records"></tbody>
+        </table>
     </div>
 
     <!-- ✅ Pass Sales Data & Clients Data from Flask -->
@@ -33,7 +65,7 @@
     <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 
-    <!-- ✅ Link to Flask Static Files -->
+    <!-- ✅ Load CSS & JavaScript Files -->
     <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
     <script src="{{ url_for('static', filename='log_sales.js') }}"></script>
 {% endblock %}

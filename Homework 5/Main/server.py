@@ -19,19 +19,12 @@ clients = [
 
 @app.route('/')
 def welcome():
-    """Render the welcome page."""
     return render_template('welcome.html')
 
 @app.route('/infinity')
 def log_sales():
-    template_path = os.path.join(app.root_path, "templates", "log_sales.html")
-    if not os.path.exists(template_path):
-        return "⚠️ ERROR: log_sales.html NOT FOUND!", 500  # Return error if missing
-    
-    print("✅ log_sales.html is being rendered")
     return render_template('log_sales.html', sales=sales, clients=clients)
 
-# API Routes for sales management
 
 @app.route('/save_sale', methods=['POST'])
 def save_sale():
