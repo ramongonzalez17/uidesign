@@ -1,4 +1,4 @@
-const salesperson = "Lindsey Rosales - Best TA and Datadog SWE";  
+const salesperson = "Lindsey Rosales";  
 $(document).ready(function () {
     $("#client").autocomplete({ source: window.clients });
 
