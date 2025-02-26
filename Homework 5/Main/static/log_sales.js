@@ -134,8 +134,6 @@ function setMoveCursor(isDragging) {
 
 function drag(event, id) {
     event.dataTransfer.setData("text/plain", id);
-    $(this).css("cursor", "move");  
-
     setMoveCursor(true);  
 
     $(`#sale-${id}`).css("background-color", "#ffffcc");
@@ -156,7 +154,7 @@ $("#trash").css({
 });
 
 $("#trash").on("dragover", function (event) {
-    $(this).css("cursor", "move");  
+    event.preventDefault();
     $(this).css({
         "background-color": "#ffffcc",  
         "cursor": "move"
