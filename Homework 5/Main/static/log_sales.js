@@ -1,4 +1,3 @@
-const salesperson = "Lindsey Rosales - Best TA and Datadog SWE";  
 $(document).ready(function () {
     $("#client").autocomplete({ source: window.clients });
 
@@ -6,14 +5,46 @@ $(document).ready(function () {
 
     $("#client, #reams").keypress(function (event) {
         if (event.key === "Enter") {
-            event.preventDefault(); 
+            event.preventDefault();
             processNewSale();
         }
     });
 
     display_sales_list(window.salesData);
+
+    // ✅ Fully prevent text inputs from changing cursor during drag
+    $("#client, #reams").on("dragenter dragover drop", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        $(this).blur(); // Removes focus to prevent cursor change
+        $(this).css("cursor", "move"); // ✅ Force cursor to stay "move"
+    });
+
+    $("#trash").css({
+        "background-color": "#d3d3d3",
+        "cursor": "move"
+    });
 });
 
+// ✅ When dragging starts, force the cursor to "move" globally
+function drag(event, id) {
+    event.dataTransfer.setData("text/plain", id);
+
+    $("body, input").css("cursor", "move"); // ✅ Force cursor to "move" everywhere
+
+    $(`#sale-${id}`).css("background-color", "#ffffcc");
+}
+
+// ✅ Reset cursor after dragging ends
+function resetDrag(event, id) {
+    $("body, input").css("cursor", "default");
+
+    $(`#sale-${id}`).css("background-color", "");
+}
+
+/**
+ * Displays the list of sales in the UI.
+ */
 function display_sales_list(sales) {
     const salesContainer = $("#sales-records");
     salesContainer.empty();
@@ -38,7 +69,9 @@ function display_sales_list(sales) {
     });
 }
 
-
+/**
+ * Handles processing a new sale.
+ */
 function processNewSale() {
     const client = $("#client").val().trim();
     const reams = $("#reams").val().trim();
@@ -49,19 +82,19 @@ function processNewSale() {
     if (!client) {
         $("#client-warning").text("Client name is required.").show();
         $("#client").focus();
-        hasError = true;
+        return;
     }
 
     if (!reams) {
         $("#reams-warning").text("Number of reams is required.").show();
         $("#reams").focus();
-        hasError = true;
+        return;
     }
 
     if (!/^[0-9]+$/.test(reams)) {
         $("#reams-warning").text("Valid number of reams is required.").show();
         $("#reams").focus();
-        hasError = true;
+        return;
     }
 
     const newSale = { salesperson, client, reams };
@@ -69,6 +102,9 @@ function processNewSale() {
     save_sale(newSale);
 }
 
+/**
+ * Saves a sale via AJAX request.
+ */
 function save_sale(new_sale) {
     $.ajax({
         url: "/save_sale",
@@ -80,10 +116,9 @@ function save_sale(new_sale) {
             $("#client").autocomplete({ source: response.clients });
 
             $("#client, #reams").val(""); 
-
             $("#client").focus(); 
         },
-        error: function (xhr, status, error) {
+        error: function () {
             alert("Failed to save sale. Check server logs.");
         }
     });
@@ -98,7 +133,7 @@ function delete_sale(id) {
         success: function (response) {
             display_sales_list(response.sales);
         },
-        error: function (xhr, status, error) {
+        error: function () {
             alert("Failed to delete sale. Check server logs.");
         }
     });
@@ -107,25 +142,35 @@ function delete_sale(id) {
 function drag(event, id) {
     event.dataTransfer.setData("text/plain", id);
 
-    $(`#sale-${id}`).css("background-color", "yellow");
+    $("body").css("cursor", "move");
+
+    $(`#sale-${id}`).css("background-color", "#ffffcc");
 }
 
+
 function resetDrag(event, id) {
-    $(`#sale-${id}`).css("background-color", "");  
+    $("body").css("cursor", "default");
+
+    $(`#sale-${id}`).css("background-color", "");
 }
+
+$("#trash").css({
+    "background-color": "#d3d3d3",
+    "cursor": "move"
+});
 
 $("#trash").on("dragover", function (event) {
     event.preventDefault();
     $(this).css({
-        "background-color": "red",
-        "cursor": "grabbing"
+        "background-color": "#ffffcc",
+        "cursor": "default"
     });
 });
 
 $("#trash").on("dragleave", function () {
     $(this).css({
-        "background-color": "grey",
-        "cursor": "default"
+        "background-color": "#d3d3d3",
+        "cursor": "normal"
     });
 });
 
@@ -136,7 +181,7 @@ $("#trash").on("drop", function (event) {
     delete_sale(parseInt(id));
 
     $(this).css({
-        "background-color": "grey",
-        "cursor": "default"
+        "background-color": "#d3d3d3",
+        "cursor": "move"
     });
 });
