@@ -1,3 +1,4 @@
+const salesperson = "Lindsey Rosales - Best TA and Datadog SWE";  
 $(document).ready(function () {
     $("#client").autocomplete({ source: window.clients });
 
@@ -5,42 +6,25 @@ $(document).ready(function () {
 
     $("#client, #reams").keypress(function (event) {
         if (event.key === "Enter") {
-            event.preventDefault();
+            event.preventDefault(); 
             processNewSale();
         }
     });
 
     display_sales_list(window.salesData);
 
-    // ✅ Fully prevent text inputs from changing cursor during drag
+    // ✅ Prevent input fields from interfering with drag/drop
     $("#client, #reams").on("dragenter dragover drop", function (event) {
         event.preventDefault();
         event.stopPropagation();
-        $(this).blur(); // Removes focus to prevent cursor change
-        $(this).css("cursor", "move"); // ✅ Force cursor to stay "move"
     });
 
+    // ✅ Ensure trash bin starts as grey and cursor remains "move"
     $("#trash").css({
         "background-color": "#d3d3d3",
         "cursor": "move"
     });
 });
-
-// ✅ When dragging starts, force the cursor to "move" globally
-function drag(event, id) {
-    event.dataTransfer.setData("text/plain", id);
-
-    $("body, input").css("cursor", "move"); // ✅ Force cursor to "move" everywhere
-
-    $(`#sale-${id}`).css("background-color", "#ffffcc");
-}
-
-// ✅ Reset cursor after dragging ends
-function resetDrag(event, id) {
-    $("body, input").css("cursor", "default");
-
-    $(`#sale-${id}`).css("background-color", "");
-}
 
 /**
  * Displays the list of sales in the UI.
@@ -124,6 +108,9 @@ function save_sale(new_sale) {
     });
 }
 
+/**
+ * Deletes a sale via AJAX request.
+ */
 function delete_sale(id) {
     $.ajax({
         url: "/delete_sale",
@@ -139,20 +126,29 @@ function delete_sale(id) {
     });
 }
 
+function setMoveCursor(isDragging) {
+    const cursorStyle = isDragging ? "move" : "default";
+
+    $("body, #trash, #client, #reams").css("cursor", cursorStyle);
+}
+
 function drag(event, id) {
     event.dataTransfer.setData("text/plain", id);
+    $(this).css("cursor", "move");  
 
-    $("body").css("cursor", "move");
+    setMoveCursor(true);  
 
     $(`#sale-${id}`).css("background-color", "#ffffcc");
 }
 
-
 function resetDrag(event, id) {
-    $("body").css("cursor", "default");
-
+    setMoveCursor(false);  
     $(`#sale-${id}`).css("background-color", "");
 }
+
+$("#client, #reams").on("dragenter dragover drop", function (event) {
+    $(this).css("cursor", "move");  
+});
 
 $("#trash").css({
     "background-color": "#d3d3d3",
@@ -160,17 +156,17 @@ $("#trash").css({
 });
 
 $("#trash").on("dragover", function (event) {
-    event.preventDefault();
+    $(this).css("cursor", "move");  
     $(this).css({
-        "background-color": "#ffffcc",
-        "cursor": "default"
+        "background-color": "#ffffcc",  
+        "cursor": "move"
     });
 });
 
 $("#trash").on("dragleave", function () {
     $(this).css({
-        "background-color": "#d3d3d3",
-        "cursor": "normal"
+        "background-color": "#d3d3d3",  
+        "cursor": "move"
     });
 });
 
@@ -178,10 +174,10 @@ $("#trash").on("drop", function (event) {
     event.preventDefault();
     const id = event.originalEvent.dataTransfer.getData("text/plain");
 
-    delete_sale(parseInt(id));
+    delete_sale(parseInt(id)); // Remove sale
 
     $(this).css({
-        "background-color": "#d3d3d3",
+        "background-color": "#d3d3d3",  // Back to default grey
         "cursor": "move"
     });
 });
