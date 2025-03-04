@@ -56,12 +56,15 @@ def home():
 
 @app.route('/search', methods=['GET'])
 def search():
-    query = request.args.get('query', '').strip().upper()
-    if not query:
+    query = request.args.get('query', '').strip().upper()  # Remove leading/trailing spaces
+
+    if not query:  # If empty or only whitespace
         return redirect(url_for('home'))
 
     results = [stock for stock in stocks if query in stock["ticker"] or query in stock["name"].upper()]
     return render_template('search_results.html', query=query, results=results)
+
+
 
 @app.route('/view/<int:stock_id>')
 def view_stock(stock_id):

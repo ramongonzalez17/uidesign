@@ -2,25 +2,40 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Popular Stocks</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Market Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="{{ url_for('home') }}">Ramon's Popular Stocks</a>
-    <form class="d-flex ms-auto" id="searchForm" method="get" action="{{ url_for('search') }}">
-      <input class="form-control me-2" type="search" name="query" id="searchInput" placeholder="Search Ticker or Company">
-      <button class="btn btn-outline-primary" type="submit">Search</button>
-    </form>
-  </div>
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('home') }}">Stock Dashboard</a>
+        
+        <form id="searchForm" class="d-flex ms-auto" action="{{ url_for('search') }}" method="GET">
+            <input class="form-control me-2" type="search" name="query" id="searchInput" placeholder="Search Ticker or Company">
+            <button class="btn btn-outline-primary" type="submit">Search</button>
+        </form>
+    </div>
 </nav>
 
 <div class="container mt-4">
-  {% block content %}{% endblock %}
+    {% block content %}{% endblock %}
 </div>
+
+<script>
+    document.getElementById("searchForm").addEventListener("submit", function(event) {
+        let inputField = document.getElementById("searchInput");
+        let query = inputField.value.trim();  // Remove whitespace
+
+        if (query === "") {  
+            event.preventDefault();  // Stop form submission
+            inputField.value = "";  // Clear input
+            inputField.focus();  // Keep focus in the search bar
+        }
+    });
+</script>
 
 </body>
 </html>
