@@ -42,9 +42,9 @@
     </div>
     {% endfor %}
 </div>
-
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Handle Edit Button Click
         document.querySelectorAll(".edit-button").forEach(button => {
             button.addEventListener("click", function () {
                 const ticker = this.getAttribute("data-ticker");
@@ -52,6 +52,7 @@
             });
         });
     
+        // Handle Cancel Button Click
         document.querySelectorAll(".cancel-button").forEach(button => {
             button.addEventListener("click", function () {
                 const ticker = this.getAttribute("data-ticker");
@@ -59,6 +60,7 @@
             });
         });
     
+        // Handle Save Changes Button Click
         document.querySelectorAll(".save-button").forEach(button => {
             button.addEventListener("click", function () {
                 const ticker = this.getAttribute("data-ticker");
@@ -88,6 +90,28 @@
             });
         });
     
+        // Handle Remove Button Click
+        document.querySelectorAll(".delete-button").forEach(button => {
+            button.addEventListener("click", function () {
+                const ticker = this.getAttribute("data-ticker");
+    
+                fetch(`/delete_stock/${ticker}`, {
+                    method: "POST",
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        document.getElementById(`stock-${ticker}`).remove();
+                        updatePortfolioValue();
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+            });
+        });
+    
+        // Function to Update Portfolio Total Value
         function updatePortfolioValue() {
             let total = 0;
             document.querySelectorAll(".stock-card").forEach(card => {
@@ -99,6 +123,7 @@
         }
     });
     </script>
+    
     
 
 {% endblock %}

@@ -11,11 +11,6 @@ POLYGON_API_KEY = os.getenv("POLYGON_API_KEY", "8k2Yd07IqDprBnrMMmG5opfVqeMMrA2y
 user_stocks = {}
 searchable_stocks = []  # Stores tickers added by users
 
-# Function to fetch stock data from Polygon.io
-import requests
-import os
-
-# Replace this with your Polygon.io API key
 POLYGON_API_KEY = os.getenv("POLYGON_API_KEY", "8k2Yd07IqDprBnrMMmG5opfVqeMMrA2y")
 
 def get_stock_data(ticker):
@@ -99,7 +94,6 @@ def search():
     
     return render_template('search_results.html', query=query, results=[stock_data], count=1)
 
-# Add Stock Page
 @app.route('/add', methods=['GET', 'POST'])
 def add_stock():
     error_message = None  # ✅ Store error message
@@ -114,8 +108,9 @@ def add_stock():
             error_message = "Shares must be a positive number."
         else:
             stock_data = get_stock_data(ticker)
-            if stock_data is None:
-                error_message = f"Ticker '{ticker}' not found. Please enter a valid stock symbol."
+
+            if "error" in stock_data:  # ✅ Fix: Correctly check for invalid tickers
+                error_message = stock_data["error"]
             elif ticker in user_stocks:
                 error_message = "Stock already added to home screen."
             else:
@@ -127,18 +122,20 @@ def add_stock():
     return render_template('add_stock.html', error_message=error_message)
 
 
+
 # Delete Stock from Home Screen
 @app.route('/delete_stock/<ticker>', methods=['POST'])
 def delete_stock(ticker):
     ticker = ticker.upper()
-
+    
     if ticker in user_stocks:
-        del user_stocks[ticker]  # ✅ Remove stock from user's portfolio
+        del user_stocks[ticker]
         if ticker in searchable_stocks:
-            searchable_stocks.remove(ticker)  # ✅ Remove from search suggestions
+            searchable_stocks.remove(ticker)
         return jsonify({"message": f"Stock {ticker} removed successfully."}), 200
     
-    return jsonify({"error": f"Stock {ticker} not found."}), 404  # ✅ Show error instead of crashing
+    return jsonify({"error": "Stock not found."}), 404
+
 
 
 # Fetch Searchable Stocks for Autocomplete
@@ -212,6 +209,7 @@ def update_stock(ticker):
         }), 200
     except ValueError:
         return jsonify({"error": "Shares must be a valid number."}), 400
+
 
 
 
