@@ -14,7 +14,7 @@
         <a class="navbar-brand" href="{{ url_for('home') }}">Ramon's Popular Stocks</a>
         
         <form id="searchForm" class="d-flex ms-auto" action="{{ url_for('search') }}" method="GET">
-            <input class="form-control me-2" type="search" name="query" id="searchInput" placeholder="Search Ticker or Company">
+            <input class="form-control me-2" type="search" name="query" id="searchInput" placeholder="Search Ticker">
             <button class="btn btn-outline-primary" type="submit">Search</button>
         </form>
     </div>
@@ -27,12 +27,12 @@
 <script>
     document.getElementById("searchForm").addEventListener("submit", function(event) {
         let inputField = document.getElementById("searchInput");
-        let query = inputField.value.trim();  // Remove whitespace
+        let query = inputField.value.trim();  
 
         if (query === "") {  
-            event.preventDefault();  // Stop form submission
-            inputField.value = "";  // Clear input
-            inputField.focus();  // Keep focus in the search bar
+            event.preventDefault();  
+            inputField.value = "";  
+            inputField.focus();  
         }
     });
 </script>
