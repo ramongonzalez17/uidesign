@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>My Stock Portfolio</h1>
+<p>Total Portfolio Value: ${{ total_value }}</p>
+
+<div class="row">
+    {% for stock in user_stocks.values() %}
+    <div class="col-md-4">
+        <div class="card">
+            <img src="{{ stock.image_url }}" class="card-img-top" alt="{{ stock.ticker }} logo" style="max-height: 100px; object-fit: contain;">
+            <div class="card-body">
+                <h5 class="card-title">{{ stock.ticker }} - {{ stock.name }}</h5>
+                <p>Price: ${{ stock.price }} <br> Shares: {{ stock.shares }}</p>
+                <form action="/delete_stock/{{ stock.ticker }}" method="POST">
+                    <button type="submit" class="btn btn-danger">Remove</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

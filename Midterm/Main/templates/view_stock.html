@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ stock.ticker }} - {{ stock.name }}</h2>
+<img src="{{ stock.image_url }}" alt="{{ stock.ticker }} logo" style="max-height: 150px; object-fit: contain;">
+
+<p><strong>Sector:</strong> {{ stock.sector }}</p>
+<p><strong>Price:</strong> ${{ stock.price }}</p>
+<p><strong>Market Cap:</strong> {{ stock.market_cap }}</p>
+<p><strong>Dividend Yield:</strong> {{ stock.dividend_yield }}%</p>
+<p><strong>P/E Ratio:</strong> {{ stock.pe_ratio }}</p>
+<p><strong>EPS:</strong> {{ stock.eps }}</p>
+<p><strong>52-Week High:</strong> ${{ stock.week_high }}</p>
+<p><strong>52-Week Low:</strong> ${{ stock.week_low }}</p>
+<p><strong>Headquarters:</strong> {{ stock.headquarters }}</p>
+
+<h3>Company Overview</h3>
+<p>{{ stock.description }}</p>
+
+<a href="{{ url_for('edit_stock', stock_id=stock.id) }}" class="btn btn-warning">Edit</a>
+<a href="{{ url_for('home') }}" class="btn btn-secondary">Back to Home</a>
+{% endblock %}
