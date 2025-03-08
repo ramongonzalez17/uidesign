@@ -44,60 +44,61 @@
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".edit-button").forEach(button => {
-        button.addEventListener("click", function () {
-            const ticker = this.getAttribute("data-ticker");
-            document.getElementById(`edit-form-${ticker}`).style.display = "block";
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".edit-button").forEach(button => {
+            button.addEventListener("click", function () {
+                const ticker = this.getAttribute("data-ticker");
+                document.getElementById(`edit-form-${ticker}`).style.display = "block";
+            });
         });
+    
+        document.querySelectorAll(".cancel-button").forEach(button => {
+            button.addEventListener("click", function () {
+                const ticker = this.getAttribute("data-ticker");
+                document.getElementById(`edit-form-${ticker}`).style.display = "none";
+            });
+        });
+    
+        document.querySelectorAll(".save-button").forEach(button => {
+            button.addEventListener("click", function () {
+                const ticker = this.getAttribute("data-ticker");
+                const sharesInput = document.querySelector(`#edit-form-${ticker} .edit-shares`);
+                const ratingInput = document.querySelector(`#edit-form-${ticker} .edit-rating`);
+    
+                const newShares = sharesInput.value;
+                const newRating = ratingInput.value;
+    
+                fetch(`/update_stock/${ticker}`, {
+                    method: "POST",
+                    body: new URLSearchParams({ "shares": newShares, "rating": newRating }),
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        document.querySelector(`#stock-${ticker} .stock-shares`).textContent = data.shares;
+                        document.querySelector(`#stock-${ticker} .stock-rating`).textContent = data.rating;
+                        document.getElementById(`edit-form-${ticker}`).style.display = "none";
+                        updatePortfolioValue();
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+            });
+        });
+    
+        function updatePortfolioValue() {
+            let total = 0;
+            document.querySelectorAll(".stock-card").forEach(card => {
+                const price = parseFloat(card.querySelector("p:nth-of-type(1)").textContent.replace("Price: $", ""));
+                const shares = parseInt(card.querySelector(".stock-shares").textContent, 10);
+                total += price * shares;
+            });
+            document.getElementById("portfolio-value").textContent = total.toFixed(2);
+        }
     });
-
-    document.querySelectorAll(".cancel-button").forEach(button => {
-        button.addEventListener("click", function () {
-            const ticker = this.getAttribute("data-ticker");
-            document.getElementById(`edit-form-${ticker}`).style.display = "none";
-        });
-    });
-
-    document.querySelectorAll(".save-button").forEach(button => {
-        button.addEventListener("click", function () {
-            const ticker = this.getAttribute("data-ticker");
-            const sharesInput = document.querySelector(`#edit-form-${ticker} .edit-shares`);
-            const ratingInput = document.querySelector(`#edit-form-${ticker} .edit-rating`);
-
-            const newShares = sharesInput.value;
-            const newRating = ratingInput.value;
-
-            fetch(`/update_stock/${ticker}`, {
-                method: "POST",
-                body: new URLSearchParams({ "shares": newShares, "rating": newRating }),
-                headers: { "Content-Type": "application/x-www-form-urlencoded" }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    document.querySelector(`#stock-${ticker} .stock-shares`).textContent = data.shares;
-                    document.querySelector(`#stock-${ticker} .stock-rating`).textContent = data.rating;
-                    document.getElementById(`edit-form-${ticker}`).style.display = "none";
-                    updatePortfolioValue();
-                }
-            })
-            .catch(error => console.error("Error:", error));
-        });
-    });
-
-    function updatePortfolioValue() {
-        let total = 0;
-        document.querySelectorAll(".stock-card").forEach(card => {
-            const price = parseFloat(card.querySelector("p:nth-of-type(1)").textContent.replace("Price: $", ""));
-            const shares = parseInt(card.querySelector(".stock-shares").textContent, 10);
-            total += price * shares;
-        });
-        document.getElementById("portfolio-value").textContent = total.toFixed(2);
-    }
-});
-</script>
+    </script>
+    
 
 {% endblock %}

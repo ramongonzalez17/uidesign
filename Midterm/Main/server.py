@@ -180,5 +180,42 @@ def edit_stock(ticker):
 
     return render_template('edit_stock.html', stock=user_stocks[ticker])
 
+
+@app.route('/update_stock/<ticker>', methods=['POST'])
+def update_stock(ticker):
+    ticker = ticker.upper()
+
+    if ticker not in user_stocks:
+        return jsonify({"error": f"Stock {ticker} not found."}), 404
+
+    try:
+        new_shares = request.form.get("shares")
+        new_rating = request.form.get("rating")
+
+        if new_shares is None or new_rating is None:
+            return jsonify({"error": "Invalid request parameters."}), 400
+
+        new_shares = int(new_shares)
+
+        if new_shares < 0:
+            return jsonify({"error": "Shares cannot be negative."}), 400
+
+        # ✅ Update stock data
+        user_stocks[ticker]["shares"] = new_shares
+        user_stocks[ticker]["rating"] = new_rating
+
+        return jsonify({
+            "ticker": ticker,
+            "shares": new_shares,
+            "rating": new_rating,
+            "message": f"Updated {ticker}: {new_shares} shares, Rating: {new_rating}"
+        }), 200
+    except ValueError:
+        return jsonify({"error": "Shares must be a valid number."}), 400
+
+
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
