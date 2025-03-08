@@ -1,23 +1,103 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>My Stock Portfolio</h1>
-<p>Total Portfolio Value: ${{ total_value }}</p>
+<h2>My Stock Portfolio</h2>
+<p>Total Portfolio Value: $<span id="portfolio-value">{{ total_value }}</span></p>
 
-<div class="row">
+<div id="stock-container">
     {% for stock in user_stocks.values() %}
-    <div class="col-md-4">
-        <div class="card">
-            <img src="{{ stock.image_url }}" class="card-img-top" alt="{{ stock.ticker }} logo" style="max-height: 100px; object-fit: contain;">
-            <div class="card-body">
-                <h5 class="card-title">{{ stock.ticker }} - {{ stock.name }}</h5>
-                <p>Price: ${{ stock.price }} <br> Shares: {{ stock.shares }}</p>
-                <form action="/delete_stock/{{ stock.ticker }}" method="POST">
-                    <button type="submit" class="btn btn-danger">Remove</button>
-                </form>
+    <div class="card mb-3 stock-card" id="stock-{{ stock.ticker }}">
+        <img src="{{ stock.image_url }}" alt="{{ stock.ticker }} logo" class="card-img-top" style="max-height: 100px; object-fit: contain;">
+        <div class="card-body">
+            <h5 class="card-title">{{ stock.ticker }} - {{ stock.name }}</h5>
+            <p>Price: ${{ stock.price }}</p>
+            <p>Shares: <span class="stock-shares">{{ stock.shares }}</span></p>
+            <p>Rating: <span class="stock-rating">{{ stock.rating }}</span></p>
+
+            <!-- View Button (NEW) -->
+            <a href="{{ url_for('view_stock', ticker=stock.ticker) }}" class="btn btn-primary">View</a>
+
+            <!-- Edit Button -->
+            <button class="btn btn-secondary edit-button" data-ticker="{{ stock.ticker }}">Edit</button>
+
+            <!-- Remove Button -->
+            <button class="btn btn-danger delete-button" data-ticker="{{ stock.ticker }}">Remove</button>
+
+            <!-- Edit Form (Hidden Initially) -->
+            <div class="edit-form mt-3" id="edit-form-{{ stock.ticker }}" style="display: none;">
+                <label>Shares:</label>
+                <input type="number" class="form-control edit-shares" value="{{ stock.shares }}" min="0">
+
+                <label class="mt-2">Rating:</label>
+                <select class="form-control edit-rating">
+                    <option value="Buy" {% if stock.rating == 'Buy' %}selected{% endif %}>Buy</option>
+                    <option value="Hold" {% if stock.rating == 'Hold' %}selected{% endif %}>Hold</option>
+                    <option value="Sell" {% if stock.rating == 'Sell' %}selected{% endif %}>Sell</option>
+                </select>
+
+                <button class="btn btn-primary mt-2 save-button" data-ticker="{{ stock.ticker }}">Save Changes</button>
+                <button class="btn btn-secondary mt-2 cancel-button" data-ticker="{{ stock.ticker }}">Cancel</button>
             </div>
         </div>
     </div>
     {% endfor %}
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".edit-button").forEach(button => {
+        button.addEventListener("click", function () {
+            const ticker = this.getAttribute("data-ticker");
+            document.getElementById(`edit-form-${ticker}`).style.display = "block";
+        });
+    });
+
+    document.querySelectorAll(".cancel-button").forEach(button => {
+        button.addEventListener("click", function () {
+            const ticker = this.getAttribute("data-ticker");
+            document.getElementById(`edit-form-${ticker}`).style.display = "none";
+        });
+    });
+
+    document.querySelectorAll(".save-button").forEach(button => {
+        button.addEventListener("click", function () {
+            const ticker = this.getAttribute("data-ticker");
+            const sharesInput = document.querySelector(`#edit-form-${ticker} .edit-shares`);
+            const ratingInput = document.querySelector(`#edit-form-${ticker} .edit-rating`);
+
+            const newShares = sharesInput.value;
+            const newRating = ratingInput.value;
+
+            fetch(`/update_stock/${ticker}`, {
+                method: "POST",
+                body: new URLSearchParams({ "shares": newShares, "rating": newRating }),
+                headers: { "Content-Type": "application/x-www-form-urlencoded" }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    document.querySelector(`#stock-${ticker} .stock-shares`).textContent = data.shares;
+                    document.querySelector(`#stock-${ticker} .stock-rating`).textContent = data.rating;
+                    document.getElementById(`edit-form-${ticker}`).style.display = "none";
+                    updatePortfolioValue();
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    });
+
+    function updatePortfolioValue() {
+        let total = 0;
+        document.querySelectorAll(".stock-card").forEach(card => {
+            const price = parseFloat(card.querySelector("p:nth-of-type(1)").textContent.replace("Price: $", ""));
+            const shares = parseInt(card.querySelector(".stock-shares").textContent, 10);
+            total += price * shares;
+        });
+        document.getElementById("portfolio-value").textContent = total.toFixed(2);
+    }
+});
+</script>
+
 {% endblock %}
