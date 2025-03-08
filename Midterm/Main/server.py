@@ -25,13 +25,13 @@ def get_stock_data(ticker):
     try:
         ticker = ticker.upper()
 
-        # ✅ Fetch company details
+        # ✅ Fetch company details from Polygon API
         details_url = f"https://api.polygon.io/v3/reference/tickers/{ticker}?apiKey={POLYGON_API_KEY}"
         details_response = requests.get(details_url)
         details_data = details_response.json()
 
-        if "results" not in details_data or not details_data["results"]:
-            return {"error": f"Ticker '{ticker}' not found or does not exist."}
+        if "results" not in details_data:
+            return {"error": f"Ticker '{ticker}' not found or data unavailable."}
 
         stock_info = details_data["results"]
 
@@ -39,22 +39,58 @@ def get_stock_data(ticker):
         price_url = f"https://api.polygon.io/v2/aggs/ticker/{ticker}/prev?adjusted=true&apiKey={POLYGON_API_KEY}"
         price_response = requests.get(price_url)
         price_data = price_response.json()
-        price = price_data["results"][0]["c"] if "results" in price_data and price_data["results"] else "N/A"
+
+        price = price_data["results"][0]["c"] if "results" in price_data and price_data["results"] else 0
+
+        # ✅ Extract image from branding
+        # ✅ Extract image from branding
+        image_url = stock_info.get("branding", {}).get("logo_url", "")
+
+        # ✅ Ensure image URL is complete
+        if image_url and not image_url.startswith("http"):
+            image_url = f"https://api.polygon.io{image_url}"
+
+        # ✅ Set a default fallback image if the URL is empty
+        if not image_url:
+            image_url = "https://via.placeholder.com/150"
+
+        # ✅ Ensure image URL is complete (prepend `https://api.polygon.io` if necessary)
+        if image_url and not image_url.startswith("http"):
+            image_url = f"https://api.polygon.io{image_url}"
+
+        address = stock_info.get("address", {})
+        city = address.get("city", "Unknown")
+        state = address.get("state", "")
+
+        # ✅ Only add the state if it exists
+        if state:
+            headquarters = f"{city}, {state}"
+        else:
+            headquarters = city
+        # ✅ Return stock details
+        # ✅ Ensure Market Cap is formatted properly
+        raw_market_cap = stock_info.get("market_cap", 0)
+        formatted_market_cap = format_market_cap(raw_market_cap) if raw_market_cap else "N/A"
 
         return {
             "ticker": stock_info["ticker"],
             "name": stock_info.get("name", ticker),
-            "price": price if price is not None else "N/A",
-            "market_cap": format_market_cap(stock_info.get("market_cap", 0)),  # ✅ Now formatted correctly
-            "sector": stock_info.get("sic_description", "Unknown"),  # ✅ Now gets the sector from `sic_description`
-            "image_url": stock_info.get("branding", {}).get("logo_url", ""),  # ✅ Now pulls correct logo URL
+            "price": price,
+            "market_cap": formatted_market_cap,
+            "sector": stock_info.get("sic_description", "Unknown"),  # Extract sector from SIC description
+            "image_url": image_url if image_url else "https://via.placeholder.com/150",  # Fallback image
             "description": stock_info.get("description", "No description available."),
-            "total_employees": stock_info.get("total_employees", "N/A"),  # ✅ Added total employees
-            "homepage_url": stock_info.get("homepage_url", "#"),  # ✅ Company website link
-            "address": f"{stock_info.get('address', {}).get('address1', 'Unknown')}, {stock_info.get('address', {}).get('city', 'Unknown')}, {stock_info.get('address', {}).get('state', 'Unknown')} {stock_info.get('address', {}).get('postal_code', '')}",
+            "headquarters": headquarters,
+            "ceo": stock_info.get("executives", [{}])[0].get("name", "Unknown"),
+            "total_employees": stock_info.get("total_employees", "N/A"),
+            "homepage_url": stock_info.get("homepage_url", "#"),
+            "rating": "Hold",
+            "shares": 0
         }
     except Exception as e:
         return {"error": f"Error retrieving stock data: {str(e)}"}
+
+
 
 
 
@@ -177,8 +213,9 @@ def update_stock(ticker):
 
         new_shares = int(new_shares)
 
-        if new_shares < 0:
-            return jsonify({"error": "Shares cannot be negative."}), 400
+        # ✅ Ensure shares are greater than zero
+        if new_shares <= 0:
+            return jsonify({"error": "Shares must be greater than zero."}), 400
 
         # ✅ Update stock data
         user_stocks[ticker]["shares"] = new_shares
@@ -190,12 +227,9 @@ def update_stock(ticker):
             "rating": new_rating,
             "message": f"Updated {ticker}: {new_shares} shares, Rating: {new_rating}"
         }), 200
+
     except ValueError:
         return jsonify({"error": "Shares must be a valid number."}), 400
-
-
-
-
 
 
 if __name__ == '__main__':

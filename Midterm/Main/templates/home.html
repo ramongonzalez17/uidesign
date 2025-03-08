@@ -7,7 +7,12 @@
 <div id="stock-container">
     {% for stock in user_stocks.values() %}
     <div class="card mb-3 stock-card" id="stock-{{ stock.ticker }}">
-        <img src="{{ stock.image_url }}" alt="{{ stock.ticker }} logo" class="card-img-top" style="max-height: 100px; object-fit: contain;">
+        <img src="{{ stock.image_url }}" 
+     alt="{{ stock.ticker }} logo" 
+     class="card-img-top" 
+     style="max-height: 100px; object-fit: contain;" 
+     onerror="this.onerror=null; this.src='https://via.placeholder.com/150';">
+
         <div class="card-body">
             <h5 class="card-title">{{ stock.ticker }} - {{ stock.name }}</h5>
             <p>Price: ${{ stock.price }}</p>
@@ -26,7 +31,7 @@
             <!-- Edit Form (Hidden Initially) -->
             <div class="edit-form mt-3" id="edit-form-{{ stock.ticker }}" style="display: none;">
                 <label>Shares:</label>
-                <input type="number" class="form-control edit-shares" value="{{ stock.shares }}" min="0">
+                <input type="number" class="form-control edit-shares" value="{{ stock.shares }}" min="1">
 
                 <label class="mt-2">Rating:</label>
                 <select class="form-control edit-rating">
@@ -123,7 +128,6 @@
         }
     });
     </script>
-    
     
 
 {% endblock %}
