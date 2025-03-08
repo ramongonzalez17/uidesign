@@ -39,24 +39,26 @@ def get_stock_data(ticker):
         price_url = f"https://api.polygon.io/v2/aggs/ticker/{ticker}/prev?adjusted=true&apiKey={POLYGON_API_KEY}"
         price_response = requests.get(price_url)
         price_data = price_response.json()
-
         price = price_data["results"][0]["c"] if "results" in price_data and price_data["results"] else 0
 
         # ✅ Extract image from branding
         # ✅ Extract image from branding
-        image_url = stock_info.get("branding", {}).get("logo_url", "")
+        branding = stock_info.get("branding", {})
+        logo_url = branding.get("logo_url", "").strip()
+        icon_url = branding.get("icon_url", "").strip()
 
-        # ✅ Ensure image URL is complete
-        if image_url and not image_url.startswith("http"):
-            image_url = f"https://api.polygon.io{image_url}"
+        # Append the API key to access the images
+        if logo_url:
+            logo_url = f"{logo_url}?apiKey={POLYGON_API_KEY}"
+        if icon_url:
+            icon_url = f"{icon_url}?apiKey={POLYGON_API_KEY}"
 
-        # ✅ Set a default fallback image if the URL is empty
+        # ✅ Prefer PNG icon over SVG logo if available
+        image_url = icon_url if icon_url else logo_url
+
+        # ✅ Set a default placeholder image if no image exists
         if not image_url:
             image_url = "https://via.placeholder.com/150"
-
-        # ✅ Ensure image URL is complete (prepend `https://api.polygon.io` if necessary)
-        if image_url and not image_url.startswith("http"):
-            image_url = f"https://api.polygon.io{image_url}"
 
         address = stock_info.get("address", {})
         city = address.get("city", "Unknown")
