@@ -13,6 +13,14 @@ searchable_stocks = []  # Stores tickers added by users
 
 POLYGON_API_KEY = os.getenv("POLYGON_API_KEY", "8k2Yd07IqDprBnrMMmG5opfVqeMMrA2y")
 
+def format_market_cap(market_cap):
+    """Formats market cap into trillions (T) or billions (B)."""
+    if market_cap >= 1_000_000_000_000:
+        return f"{market_cap / 1_000_000_000_000:.2f}T"
+    elif market_cap >= 1_000_000_000:
+        return f"{market_cap / 1_000_000_000:.2f}B"
+    return f"{market_cap:,}"  # Keep original format for smaller values
+
 def get_stock_data(ticker):
     try:
         ticker = ticker.upper()
@@ -22,53 +30,28 @@ def get_stock_data(ticker):
         details_response = requests.get(details_url)
         details_data = details_response.json()
 
-        if "results" not in details_data:
-            return {"error": f"Ticker '{ticker}' not found or data unavailable."}
+        if "results" not in details_data or not details_data["results"]:
+            return {"error": f"Ticker '{ticker}' not found or does not exist."}
 
         stock_info = details_data["results"]
 
-        # ✅ Fetch latest stock price and fundamentals
+        # ✅ Fetch latest stock price
         price_url = f"https://api.polygon.io/v2/aggs/ticker/{ticker}/prev?adjusted=true&apiKey={POLYGON_API_KEY}"
         price_response = requests.get(price_url)
         price_data = price_response.json()
-
-        price = price_data["results"][0]["c"] if "results" in price_data and price_data["results"] else 0
-
-        # ✅ Fetch additional fundamentals
-        fundamentals_url = f"https://api.polygon.io/v2/aggs/ticker/{ticker}/range/1/day/2023-01-01/2024-01-01?adjusted=true&sort=desc&apiKey={POLYGON_API_KEY}"
-        fundamentals_response = requests.get(fundamentals_url)
-        fundamentals_data = fundamentals_response.json()
-
-        # ✅ Extract fundamental data
-        week_high = fundamentals_data["results"][0]["h"] if "results" in fundamentals_data and fundamentals_data["results"] else "N/A"
-        week_low = fundamentals_data["results"][0]["l"] if "results" in fundamentals_data and fundamentals_data["results"] else "N/A"
-
-        # ✅ Fetch financials (P/E Ratio, EPS, Dividend Yield)
-        financials_url = f"https://api.polygon.io/v2/aggs/ticker/{ticker}/range/1/year/2023-01-01/2024-01-01?adjusted=true&sort=desc&apiKey={POLYGON_API_KEY}"
-        financials_response = requests.get(financials_url)
-        financials_data = financials_response.json()
-
-        pe_ratio = financials_data["results"][0].get("pe_ratio", "N/A") if "results" in financials_data and financials_data["results"] else "N/A"
-        eps = financials_data["results"][0].get("eps", "N/A") if "results" in financials_data and financials_data["results"] else "N/A"
-        dividend_yield = financials_data["results"][0].get("dividend_yield", "N/A") if "results" in financials_data and financials_data["results"] else "N/A"
+        price = price_data["results"][0]["c"] if "results" in price_data and price_data["results"] else "N/A"
 
         return {
             "ticker": stock_info["ticker"],
             "name": stock_info.get("name", ticker),
-            "price": price,
-            "market_cap": stock_info.get("market_cap", "N/A"),
-            "sector": stock_info.get("sector", "Unknown"),
-            "image_url": stock_info.get("branding", {}).get("logo_url", f"https://logo.clearbit.com/{ticker.lower()}.com"),
+            "price": price if price is not None else "N/A",
+            "market_cap": format_market_cap(stock_info.get("market_cap", 0)),  # ✅ Now formatted correctly
+            "sector": stock_info.get("sic_description", "Unknown"),  # ✅ Now gets the sector from `sic_description`
+            "image_url": stock_info.get("branding", {}).get("logo_url", ""),  # ✅ Now pulls correct logo URL
             "description": stock_info.get("description", "No description available."),
-            "headquarters": stock_info.get("hq_address", "Unknown"),
-            "ceo": stock_info.get("executives", [{}])[0].get("name", "Unknown"),
-            "pe_ratio": pe_ratio,
-            "eps": eps,
-            "dividend_yield": dividend_yield,
-            "week_high": week_high,
-            "week_low": week_low,
-            "rating": "Hold",
-            "shares": 0
+            "total_employees": stock_info.get("total_employees", "N/A"),  # ✅ Added total employees
+            "homepage_url": stock_info.get("homepage_url", "#"),  # ✅ Company website link
+            "address": f"{stock_info.get('address', {}).get('address1', 'Unknown')}, {stock_info.get('address', {}).get('city', 'Unknown')}, {stock_info.get('address', {}).get('state', 'Unknown')} {stock_info.get('address', {}).get('postal_code', '')}",
         }
     except Exception as e:
         return {"error": f"Error retrieving stock data: {str(e)}"}
