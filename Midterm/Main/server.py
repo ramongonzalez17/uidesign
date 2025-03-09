@@ -187,7 +187,6 @@ def view_stock(ticker):
 
 
 
-
 @app.route('/edit/<ticker>', methods=['GET', 'POST'])
 def edit_stock(ticker):
     ticker = ticker.upper()
@@ -200,7 +199,6 @@ def edit_stock(ticker):
         new_rating = request.form.get("rating", user_stocks[ticker]["rating"])
         new_notes = request.form.get("notes", user_stocks[ticker].get("notes", ""))
 
-        # Ensure shares is a valid number
         try:
             new_shares = int(new_shares)
             if new_shares <= 0:
@@ -208,7 +206,6 @@ def edit_stock(ticker):
         except ValueError:
             return "Shares must be a valid number", 400
 
-        # ✅ Update stock data
         user_stocks[ticker]["shares"] = new_shares
         user_stocks[ticker]["rating"] = new_rating
         user_stocks[ticker]["notes"] = new_notes
@@ -216,6 +213,8 @@ def edit_stock(ticker):
         return redirect(url_for('view_stock', ticker=ticker))
 
     return render_template('edit_stock.html', stock=user_stocks[ticker])
+
+
 
 
 
