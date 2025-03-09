@@ -2,19 +2,38 @@
 
 {% block content %}
 <h2>Search Results for "{{ query }}"</h2>
+<p>{{ count }} result(s) found.</p>
 
 {% if results %}
-    <p>{{ count }} result(s) found.</p>
-    <ul class="list-group">
+    <div class="container">
         {% for stock in results %}
-        <li class="list-group-item">
-            <a href="{{ url_for('view_stock', stock_id=stock.id) }}">
-                <strong>{{ stock.ticker }}</strong> - {{ stock.name }}
-            </a>
-        </li>
+        <div class="card mb-3">
+            <div class="card-body position-relative">
+                <div class="d-flex align-items-center">
+                    <img src="{{ stock.image_url }}" alt="{{ stock.ticker }} logo"
+                        onerror="this.onerror=null; this.src='https://via.placeholder.com/150';"
+                        class="me-3" style="height: 50px;">
+
+                    <div>
+                        <h5 class="card-title">
+                            <strong>{{ stock.ticker }}</strong> - {{ stock.name }}
+                        </h5>
+                        <p class="small"><strong>Sector:</strong> {{ stock.sector }}</p>
+                        <p class="small"><strong>Market Cap:</strong> {{ stock.market_cap }}</p>
+                    </div>
+                </div>
+
+                <p>{{ stock.description[:150] if stock.description else 'No description available' }}...</p>
+
+                <!-- Clicking anywhere on the card will take you to view the stock -->
+                <a href="{{ url_for('view_stock', ticker=stock.ticker, search=True) }}" class="stretched-link"></a>
+            </div>
+        </div>
         {% endfor %}
-    </ul>
+    </div>
 {% else %}
-    <p class="text-danger">No results found.</p>
+    <p>No results found for "{{ query }}". Try searching for something else.</p>
 {% endif %}
+
+<a href="{{ url_for('home') }}" class="btn btn-secondary mt-3">Back to Home</a>
 {% endblock %}

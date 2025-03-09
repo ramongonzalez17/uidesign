@@ -2,7 +2,7 @@
 
 {% block content %}
 <h2>My Stock Portfolio</h2>
-<p>Total Portfolio Value: $<span id="portfolio-value">{{ total_value }}</span></p>
+<p>Total Portfolio Value: $<span id="portfolio-value">{{ "{:,.2f}".format(total_value) }}</span></p>
 
 <div id="stock-container">
     {% for stock in user_stocks.values() %}
@@ -23,48 +23,16 @@
             <!-- View Button (NEW) -->
             <a href="{{ url_for('view_stock', ticker=stock.ticker) }}" class="btn btn-primary">View</a>
 
-            <!-- Edit Button -->
-            <button class="btn btn-secondary edit-button" data-ticker="{{ stock.ticker }}">Edit</button>
-
             <!-- Remove Button -->
             <button class="btn btn-danger delete-button" data-ticker="{{ stock.ticker }}">Remove</button>
 
-            <!-- Edit Form (Hidden Initially) -->
-            <div class="edit-form mt-3" id="edit-form-{{ stock.ticker }}" style="display: none;">
-                <label>Shares:</label>
-                <input type="number" class="form-control edit-shares" value="{{ stock.shares }}" min="1">
-
-                <label class="mt-2">Rating:</label>
-                <select class="form-control edit-rating">
-                    <option value="Buy" {% if stock.rating == 'Buy' %}selected{% endif %}>Buy</option>
-                    <option value="Hold" {% if stock.rating == 'Hold' %}selected{% endif %}>Hold</option>
-                    <option value="Sell" {% if stock.rating == 'Sell' %}selected{% endif %}>Sell</option>
-                </select>
-
-                <button class="btn btn-primary mt-2 save-button" data-ticker="{{ stock.ticker }}">Save Changes</button>
-                <button class="btn btn-secondary mt-2 cancel-button" data-ticker="{{ stock.ticker }}">Cancel</button>
-            </div>
         </div>
     </div>
     {% endfor %}
 </div>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // Handle Edit Button Click
-        document.querySelectorAll(".edit-button").forEach(button => {
-            button.addEventListener("click", function () {
-                const ticker = this.getAttribute("data-ticker");
-                document.getElementById(`edit-form-${ticker}`).style.display = "block";
-            });
-        });
-    
-        // Handle Cancel Button Click
-        document.querySelectorAll(".cancel-button").forEach(button => {
-            button.addEventListener("click", function () {
-                const ticker = this.getAttribute("data-ticker");
-                document.getElementById(`edit-form-${ticker}`).style.display = "none";
-            });
-        });
+=
     
         // Handle Save Changes Button Click
         document.querySelectorAll(".save-button").forEach(button => {

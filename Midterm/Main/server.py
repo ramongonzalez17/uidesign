@@ -24,8 +24,6 @@ def format_market_cap(market_cap):
 def get_stock_data(ticker):
     try:
         ticker = ticker.upper()
-
-        # ✅ Fetch company details from Polygon API
         details_url = f"https://api.polygon.io/v3/reference/tickers/{ticker}?apiKey={POLYGON_API_KEY}"
         details_response = requests.get(details_url)
         details_data = details_response.json()
@@ -35,42 +33,28 @@ def get_stock_data(ticker):
 
         stock_info = details_data["results"]
 
-        # ✅ Fetch latest stock price
         price_url = f"https://api.polygon.io/v2/aggs/ticker/{ticker}/prev?adjusted=true&apiKey={POLYGON_API_KEY}"
         price_response = requests.get(price_url)
         price_data = price_response.json()
         price = price_data["results"][0]["c"] if "results" in price_data and price_data["results"] else 0
 
-        # ✅ Extract image from branding
-        # ✅ Extract image from branding
         branding = stock_info.get("branding", {})
         logo_url = branding.get("logo_url", "").strip()
         icon_url = branding.get("icon_url", "").strip()
 
-        # Append the API key to access the images
         if logo_url:
             logo_url = f"{logo_url}?apiKey={POLYGON_API_KEY}"
         if icon_url:
             icon_url = f"{icon_url}?apiKey={POLYGON_API_KEY}"
-
-        # ✅ Prefer PNG icon over SVG logo if available
         image_url = icon_url if icon_url else logo_url
-
-        # ✅ Set a default placeholder image if no image exists
         if not image_url:
             image_url = "https://via.placeholder.com/150"
 
         address = stock_info.get("address", {})
         city = address.get("city", "Unknown")
         state = address.get("state", "")
+        headquarters = f"{city}, {state}" if state else city
 
-        # ✅ Only add the state if it exists
-        if state:
-            headquarters = f"{city}, {state}"
-        else:
-            headquarters = city
-        # ✅ Return stock details
-        # ✅ Ensure Market Cap is formatted properly
         raw_market_cap = stock_info.get("market_cap", 0)
         formatted_market_cap = format_market_cap(raw_market_cap) if raw_market_cap else "N/A"
 
@@ -79,11 +63,10 @@ def get_stock_data(ticker):
             "name": stock_info.get("name", ticker),
             "price": price,
             "market_cap": formatted_market_cap,
-            "sector": stock_info.get("sic_description", "Unknown"),  # Extract sector from SIC description
-            "image_url": image_url if image_url else "https://via.placeholder.com/150",  # Fallback image
+            "sector": stock_info.get("sic_description", "Unknown"),
+            "image_url": image_url,
             "description": stock_info.get("description", "No description available."),
             "headquarters": headquarters,
-            "ceo": stock_info.get("executives", [{}])[0].get("name", "Unknown"),
             "total_employees": stock_info.get("total_employees", "N/A"),
             "homepage_url": stock_info.get("homepage_url", "#"),
             "rating": "Hold",
@@ -102,18 +85,44 @@ def home():
     total_value = sum(stock["shares"] * stock["price"] for stock in user_stocks.values())
     return render_template('home.html', user_stocks=user_stocks, total_value=total_value, searchable_stocks=searchable_stocks)
 
-# Search Stocks - Dynamically Fetches Stocks from Polygon.io
 @app.route('/search', methods=['GET'])
 def search():
     query = request.args.get('query', '').strip().upper()
     if not query:
         return redirect(url_for('home'))
 
-    stock_data = get_stock_data(query)
-    if "error" in stock_data:
-        return render_template('search_results.html', query=query, results=[], error=stock_data["error"])
-    
-    return render_template('search_results.html', query=query, results=[stock_data], count=1)
+    search_url = f"https://api.polygon.io/v3/reference/tickers?search={query}&active=true&limit=10&apiKey={POLYGON_API_KEY}"
+    response = requests.get(search_url)
+    data = response.json()
+
+    if "results" not in data:
+        return render_template('search_results.html', query=query, results=[], error="No matching stocks found.")
+
+    results = []
+    for stock_info in data["results"]:
+        if stock_info.get("type") != "CS":  # ✅ Exclude ETFs
+            continue
+        
+        # ✅ Fetch full stock data to get description, image, and market cap
+        stock_details = get_stock_data(stock_info["ticker"])
+
+        results.append({
+            "ticker": stock_info["ticker"],
+            "name": stock_info.get("name", "Unknown"),
+            "market_cap": stock_details["market_cap"],  # ✅ Use formatted market cap
+            "image_url": stock_details["image_url"],  # ✅ Ensure proper image
+            "description": stock_details["description"],  # ✅ Ensure description is available
+            "sector": stock_details["sector"],
+        })
+
+    if not results:
+        return render_template('search_results.html', query=query, results=[], error="No matching stocks found. Try a different search.")
+
+    return render_template('search_results.html', query=query, results=results, count=len(results))
+
+
+
+
 
 @app.route('/add', methods=['GET', 'POST'])
 def add_stock():
@@ -167,36 +176,49 @@ def get_searchable_stocks():
 @app.route('/view/<ticker>')
 def view_stock(ticker):
     ticker = ticker.upper()
-    stock = user_stocks.get(ticker)
+    owned = ticker in user_stocks  # ✅ Check if the stock is owned
 
-    if not stock:
-        stock = get_stock_data(ticker)  # Fetch if not in user list
-        if "error" in stock:
-            return render_template('view_stock.html', error=stock["error"])  # Show error if stock not found
+    stock = user_stocks.get(ticker, get_stock_data(ticker))
 
-    return render_template('view_stock.html', stock=stock)
+    if "error" in stock:
+        return render_template('view_stock.html', error=stock["error"])
+
+    return render_template('view_stock.html', stock=stock, owned=owned)  # ✅ Pass 'owned' flag
+
+
 
 
 @app.route('/edit/<ticker>', methods=['GET', 'POST'])
 def edit_stock(ticker):
     ticker = ticker.upper()
-    
+
     if ticker not in user_stocks:
         return "Stock not found", 404
 
     if request.method == 'POST':
-        new_shares = int(request.form.get("shares", user_stocks[ticker]["shares"]))
+        new_shares = request.form.get("shares", user_stocks[ticker]["shares"])
         new_rating = request.form.get("rating", user_stocks[ticker]["rating"])
+        new_notes = request.form.get("notes", user_stocks[ticker].get("notes", ""))
 
-        if new_shares < 0:
-            return "Shares cannot be negative", 400
+        # Ensure shares is a valid number
+        try:
+            new_shares = int(new_shares)
+            if new_shares <= 0:
+                return "Shares must be greater than zero", 400
+        except ValueError:
+            return "Shares must be a valid number", 400
 
+        # ✅ Update stock data
         user_stocks[ticker]["shares"] = new_shares
         user_stocks[ticker]["rating"] = new_rating
+        user_stocks[ticker]["notes"] = new_notes
 
         return redirect(url_for('view_stock', ticker=ticker))
 
     return render_template('edit_stock.html', stock=user_stocks[ticker])
+
+
+
 
 
 @app.route('/update_stock/<ticker>', methods=['POST'])
@@ -215,11 +237,9 @@ def update_stock(ticker):
 
         new_shares = int(new_shares)
 
-        # ✅ Ensure shares are greater than zero
         if new_shares <= 0:
             return jsonify({"error": "Shares must be greater than zero."}), 400
 
-        # ✅ Update stock data
         user_stocks[ticker]["shares"] = new_shares
         user_stocks[ticker]["rating"] = new_rating
 
